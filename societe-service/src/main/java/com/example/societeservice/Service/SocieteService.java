@@ -29,4 +29,8 @@ public class SocieteService {
         societeRepository.deleteById(id);
     }
 
+    public Societe findById(Long id) {
+        return societeRepository.findById(id).orElse(null);
+    }
+
 }

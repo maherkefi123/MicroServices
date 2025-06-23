@@ -11,7 +11,8 @@ public class SocieteService {
     private RestTemplate restTemplate;
 
     public String getSocieteDetails(String societeId) {
-        String societeServiceUrl = "http://localhost:8082/api/societes/" + societeId;
+        String societeServiceUrl = "http://localhost:8081/societes/" + societeId;
         return restTemplate.getForObject(societeServiceUrl, String.class);
     }
 }
+

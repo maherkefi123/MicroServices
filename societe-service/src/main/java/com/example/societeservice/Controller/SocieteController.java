@@ -13,14 +13,26 @@ import java.util.List;
 public class SocieteController {
     @Autowired
     SocieteService societeService;
+
     @PostMapping
     public Societe addSociete(@RequestBody Societe societe) {
+
         return societeService.save(societe);
     }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSociete(@PathVariable Long id) {
         societeService.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+    @GetMapping("/{id}")
+    public ResponseEntity<Societe> getSociete(@PathVariable Long id) {
+        Societe societe = societeService.findById(id);
+        if (societe != null) {
+            return ResponseEntity.ok(societe);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }
