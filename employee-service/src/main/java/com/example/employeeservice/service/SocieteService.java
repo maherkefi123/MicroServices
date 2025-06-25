@@ -1,18 +1,16 @@
 package com.example.employeeservice.service;
 
+import com.example.employeeservice.feign.SocieteClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class SocieteService {
 
     @Autowired
-    private RestTemplate restTemplate;
+    private SocieteClient societeClient;
 
-    public String getSocieteDetails(String societeId) {
-        String societeServiceUrl = "http://localhost:8081/societes/" + societeId;
-        return restTemplate.getForObject(societeServiceUrl, String.class);
+    public String getSocieteDetails(String id) {
+        return societeClient.getSocieteById(id);
     }
 }
-
