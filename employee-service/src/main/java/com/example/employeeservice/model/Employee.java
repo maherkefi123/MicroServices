@@ -9,6 +9,7 @@ public class Employee {
     private String id;
     private String name;
     private String job;
+    private Long societeId; // ID externe vers Societe
 
     // Constructeurs
     public Employee() {}
@@ -27,5 +28,13 @@ public class Employee {
 
     public String getJob() { return job; }
     public void setJob(String job) { this.job = job; }
+
+    public Long getSocieteId() {
+        return societeId;
+    }
+
+    public void setSocieteId(Long societeId) {
+        this.societeId = societeId;
+    }
 }
 

@@ -11,6 +11,9 @@ public class SocieteService {
     private SocieteClient societeClient;
 
     public String getSocieteDetails(String id) {
-        return societeClient.getSocieteById(id);
+        Long societeId = Long.parseLong(id);
+        return societeClient.getSocieteById(societeId).getNom();  // ou autre champ selon ce que tu veux
     }
 }
+
+

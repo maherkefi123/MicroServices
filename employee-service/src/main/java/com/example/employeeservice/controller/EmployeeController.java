@@ -1,7 +1,9 @@
 package com.example.employeeservice.controller;
 
+import com.example.employeeservice.dto.EmployeeSocieteDTO;
 import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
+import com.example.employeeservice.service.EmployeeService;
 import com.example.employeeservice.service.SocieteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +14,9 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeRepository employeeRepository;
+
+    @Autowired
+    private EmployeeService employeeService;   // 👉 ici injecter EmployeeService
 
     @Autowired
     private SocieteService societeService;
@@ -33,5 +38,10 @@ public class EmployeeController {
     public String testSocieteCall(@PathVariable String id) {
         return societeService.getSocieteDetails(id);
     }
-}
 
+    // Appel Employee + Societe combiné
+    @GetMapping("/with-societe/{id}")
+    public EmployeeSocieteDTO getEmployeeWithSociete(@PathVariable String id) {
+        return employeeService.getEmployeeWithSociete(id);  // 👉 appeler employeeService ici
+    }
+}
