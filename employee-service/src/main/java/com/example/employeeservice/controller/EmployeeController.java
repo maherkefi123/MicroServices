@@ -5,8 +5,12 @@ import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import com.example.employeeservice.service.EmployeeService;
 import com.example.employeeservice.service.SocieteService;
+import com.example.employeeservice.service.EmployeeProducer; // ⬅️ Importe ton Producer Kafka
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import org.springframework.http.ResponseEntity;
 
 @RestController
 @RequestMapping("/api/employees")
@@ -16,10 +20,13 @@ public class EmployeeController {
     private EmployeeRepository employeeRepository;
 
     @Autowired
-    private EmployeeService employeeService;   // 👉 ici injecter EmployeeService
+    private EmployeeService employeeService;
 
     @Autowired
     private SocieteService societeService;
+
+    @Autowired
+    private EmployeeProducer producer;  // ⬅️ Injection du Kafka Producer
 
     // Ajouter un employé
     @PostMapping
@@ -42,6 +49,17 @@ public class EmployeeController {
     // Appel Employee + Societe combiné
     @GetMapping("/with-societe/{id}")
     public EmployeeSocieteDTO getEmployeeWithSociete(@PathVariable String id) {
-        return employeeService.getEmployeeWithSociete(id);  // 👉 appeler employeeService ici
+        return employeeService.getEmployeeWithSociete(id);
+    }
+
+    // 🟢 NOUVEAU : Endpoint pour envoyer un message Kafka
+    @PostMapping("/send")
+    public ResponseEntity<String> sendMessage(@RequestParam String message) {
+        producer.sendMessage(message);
+        return ResponseEntity.ok("Message envoyé via Kafka !");
+    }
+    @GetMapping("/hello")
+    public String hello() {
+        return "Bonjour !";
     }
 }
