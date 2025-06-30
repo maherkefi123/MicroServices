@@ -1,5 +1,6 @@
 package com.example.employeeservice.controller;
 
+import com.example.employeeservice.dto.EmployeeDTO;
 import com.example.employeeservice.dto.EmployeeSocieteDTO;
 import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
@@ -27,6 +28,10 @@ public class EmployeeController {
 
     @Autowired
     private EmployeeProducer producer;  // ⬅️ Injection du Kafka Producer
+
+    public EmployeeController(EmployeeProducer producer) {
+        this.producer = producer;
+    }
 
     // Ajouter un employé
     @PostMapping
@@ -61,5 +66,16 @@ public class EmployeeController {
     @GetMapping("/hello")
     public String hello() {
         return "Bonjour !";
+    }
+    @PostMapping("/send-message")   // send message
+    public ResponseEntity<String> sendMessage(@RequestBody EmployeeDTO employeeDTO) {
+        producer.sendEmployee(employeeDTO);
+        return ResponseEntity.ok("Employé envoyé via Kafka !");
+    }
+    // 🟡 Send DTO (objet complet)
+    @PostMapping("/send-employee")
+    public ResponseEntity<String> sendEmployee(@RequestBody EmployeeDTO employeeDTO) {
+        producer.sendEmployee(employeeDTO);
+        return ResponseEntity.ok("Employé envoyé !");
     }
 }
