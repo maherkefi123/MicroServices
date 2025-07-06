@@ -1,0 +1,16 @@
+spring:
+  application:
+    name: employee-service
+  cloud:
+    config:
+      uri: http://localhost:8888
+      fail-fast: true
+      profile: dev
+      label: main
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
