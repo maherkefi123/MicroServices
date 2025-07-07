@@ -1,0 +1,8 @@
+# Ignorer le fichier spécifique
+config-server/start-config-server.sh
+
+# Autres lignes existantes (si elles sont présentes)
+*.log
+/node_modules
+/dist
+/build
