@@ -5,6 +5,8 @@ public class EmployeeDTO {
     private String nom;
     private String email;
 
+    // Constructor par défaut (no-args)
+    public EmployeeDTO() {}
     // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
