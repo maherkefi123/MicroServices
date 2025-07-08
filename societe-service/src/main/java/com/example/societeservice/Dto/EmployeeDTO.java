@@ -5,15 +5,49 @@ public class EmployeeDTO {
     private String nom;
     private String email;
 
-    // Constructor par défaut (no-args)
-    public EmployeeDTO() {}
-    // Getters & Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // ✅ Constructeur par défaut (obligatoire pour Jackson)
+    public EmployeeDTO() {
+    }
 
-    public String getNom() { return nom; }
-    public void setNom(String nom) { this.nom = nom; }
+    // ✅ Constructeur avec paramètres
+    public EmployeeDTO(String id, String nom, String email) {
+        this.id = id;
+        this.nom = nom;
+        this.email = email;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    // ✅ Getters et Setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getNom() {
+        return nom;
+    }
+
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    // ✅ toString() pour debug Kafka consumer
+    @Override
+    public String toString() {
+        return "EmployeeDTO{" +
+                "id='" + id + '\'' +
+                ", nom='" + nom + '\'' +
+                ", email='" + email + '\'' +
+                '}';
+    }
 }
