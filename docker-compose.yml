@@ -1,62 +1,75 @@
-version: '3.8'
-
+version: '3.9'
 services:
-
-  discovery-server:
-    image: discovery-server
-    build: ./discovery-server
-    ports:
-      - "8761:8761"
-
   config-server:
-    image: config-server
     build: ./config-server
     ports:
       - "8888:8888"
+    networks:
+      - ms-network
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8080:8080"
     depends_on:
-      - discovery-server
+      - config-server
+    networks:
+      - ms-network
 
   employee-service:
-    image: employee-service
     build: ./employee-service
     ports:
       - "8081:8081"
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
     depends_on:
-      - discovery-server
       - config-server
-      - kafka
+    networks:
+      - ms-network
 
   societe-service:
-    image: societe-service
     build: ./societe-service
     ports:
       - "8082:8082"
-    environment:
-      SPRING_PROFILES_ACTIVE: dev
     depends_on:
-      - discovery-server
       - config-server
-      - kafka
+    networks:
+      - ms-network
+
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - ms-network
 
   kafka:
     image: wurstmeister/kafka
     ports:
       - "9092:9092"
     environment:
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ADVERTISED_PORT: 9092
+    depends_on:
+      - zookeeper
     networks:
-      - backend
+      - ms-network
 
-  zookeeper:
-    image: zookeeper
+  mysql:
+    image: mysql:8.3
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: societe_db
     ports:
-      - "2181:2181"
+      - "3306:3306"
     networks:
-      - backend
+      - ms-network
+
+  mongo:
+    image: mongo:7.0
+    ports:
+      - "27017:27017"
+    networks:
+      - ms-network
 
 networks:
-  backend:
-    driver: bridge
+  ms-network:
