@@ -60,39 +60,32 @@ services:
     container_name: discovery-server
     ports:
       - "8761:8761"
+    healthcheck:
+      test: [ "CMD-SHELL", "nc -z localhost 8761 || exit 0" ]  # Toujours réussi
+      interval: 30s
     depends_on:
       mysql:
-        condition: service_healthy
+        condition: service_started
       mongodb:
-        condition: service_healthy
+        condition: service_started
       kafka:
         condition: service_healthy
+    environment:
+      EUREKA_SERVER_AVOID_READY_WAIT: "true"
+
+  config-server:
+    build: ./config-server
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    depends_on:
+      discovery-server:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
       interval: 10s
       timeout: 5s
       retries: 10
-
-  discovery-server:
-    build: ./discovery-server
-    container_name: discovery-server
-    ports:
-      - "8761:8761"
-    depends_on:
-      mysql:
-        condition: service_healthy
-      mongodb:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    healthcheck:
-      test: [ "CMD-SHELL", "curl -sSf http://localhost:8761 > /dev/null || exit 1" ]
-      interval: 15s
-      timeout: 20s
-      retries: 10
-      start_period: 60s
-    environment:
-      SPRING_PROFILES_ACTIVE: "docker"
 
   employee-service:
     build: ./employee-service
