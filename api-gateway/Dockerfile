@@ -8,7 +8,7 @@ VOLUME /tmp
 WORKDIR /app
 
 # Copy the jar file
-COPY target/*.jar app.jar
+COPY target/api-gateway-0.0.1-SNAPSHOT.jar app.jar
 
 # Expose the port (remplace 8081 par le port du service)
 EXPOSE 8080
