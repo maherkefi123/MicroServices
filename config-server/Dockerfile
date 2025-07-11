@@ -7,6 +7,9 @@ VOLUME /tmp
 # Set the working directory
 WORKDIR /app
 
+# Installer curl pour permettre le healthcheck
+RUN apt-get update && apt-get install -y curl
+
 # Copy the jar file
 COPY target/*.jar app.jar
 

@@ -13,5 +13,7 @@ COPY target/*.jar app.jar
 # Expose the port (remplace 8081 par le port du service)
 EXPOSE 8761
 
+RUN apt-get update && apt-get install -y curl
+
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
