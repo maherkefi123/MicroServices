@@ -7,13 +7,16 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: societe_db
+      MYSQL_ROOT_HOST: '%'
     ports:
       - "3306:3306"
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost"]
+      test: ["CMD-SHELL", "mysqladmin ping -uroot -proot"]
       interval: 10s
       timeout: 5s
       retries: 10
+    volumes:
+      - mysql_data:/var/lib/mysql
 
   mongodb:
     image: mongo:5.0
@@ -25,6 +28,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    volumes:
+      - mongodb_data:/data/db
 
   zookeeper:
     image: zookeeper:3.8
@@ -32,10 +37,12 @@ services:
     ports:
       - "2181:2181"
     healthcheck:
-      test: ["CMD-SHELL", "echo stat | nc localhost 2181"]
+      test: ["CMD-SHELL", "echo stat | nc localhost 2181 | grep Mode"]
       interval: 10s
       timeout: 5s
       retries: 10
+    environment:
+      ZOO_MAX_CLIENT_CNXNS: 1000
 
   kafka:
     image: bitnami/kafka:3.6
@@ -47,15 +54,16 @@ services:
       KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
     ports:
       - "9092:9092"
     depends_on:
       zookeeper:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "kafka-topics.sh", "--list", "--bootstrap-server", "kafka:9092"]
       interval: 10s
-      timeout: 5s
+      timeout: 10s
       retries: 10
 
   discovery-server:
@@ -63,83 +71,111 @@ services:
     container_name: discovery-server
     ports:
       - "8761:8761"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EUREKA_SERVER_WAIT_TIME_IN_MS_WHEN_SYNC_EMPTY: "0"
+      EUREKA_SERVER_ENABLE_SELF_PRESERVATION: "false"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 20s
-      timeout: 5s
+      timeout: 10s
       retries: 15
-      start_period: 120s
+      start_period: 30s
     depends_on:
       mysql:
-        condition: service_started
+        condition: service_healthy
       mongodb:
-        condition: service_started
+        condition: service_healthy
       kafka:
         condition: service_healthy
-    environment:
-      EUREKA_SERVER_AVOID_READY_WAIT: "true"
 
   config-server:
     build: ./config-server
     container_name: config-server
     ports:
       - "8888:8888"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
     depends_on:
       discovery-server:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
 
   employee-service:
     build: ./employee-service
     container_name: employee-service
     ports:
       - "8081:8081"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: "10"
+      SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: "3000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
     depends_on:
       config-server:
         condition: service_healthy
       discovery-server:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
+      mongodb:
+        condition: service_healthy
 
   societe-service:
     build: ./societe-service
     container_name: societe-service
     ports:
       - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "30000"
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: "earliest"
+      SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT: "false"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+      start_period: 90s
     depends_on:
       config-server:
         condition: service_healthy
       discovery-server:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 10
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
+      mysql:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
   api-gateway:
     build: ./api-gateway
     container_name: api-gateway
     ports:
       - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 15s
+      retries: 10
+      start_period: 120s
     depends_on:
       societe-service:
         condition: service_healthy
       employee-service:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "echo 'Checking Eureka...' && (nc -z localhost 8761 || exit 1)"]
-      interval: 20s
-      timeout: 10s
-      retries: 15
-      start_period: 90s
+      discovery-server:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
+  mongodb_data:
