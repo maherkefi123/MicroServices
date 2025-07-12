@@ -36,13 +36,15 @@ services:
     container_name: zookeeper
     ports:
       - "2181:2181"
-    healthcheck:
-      test: ["CMD-SHELL", "echo stat | nc localhost 2181 | grep Mode"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
     environment:
-      ZOO_MAX_CLIENT_CNXNS: 1000
+      ZOO_STANDALONE_ENABLED: "true"  # Force le mode standalone
+      ZOO_4LW_COMMANDS_WHITELIST: "*"  # Autorise toutes les commandes 4 lettres
+    healthcheck:
+      test: [ "CMD", "zkServer.sh", "status" ]
+      interval: 10s
+      timeout: 20s
+      retries: 5
+      start_period: 30s
 
   kafka:
     image: bitnami/kafka:3.6
