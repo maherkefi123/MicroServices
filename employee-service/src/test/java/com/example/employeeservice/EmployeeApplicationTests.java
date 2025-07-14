@@ -5,8 +5,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 
 
-
-@SpringBootTest(properties = "spring.cloud.config.enabled=false")
+@SpringBootTest(properties = {"spring.cloud.config.enabled=false", "spring.kafka.topic.name=employee-topic-test"})
 class EmployeeApplicationTests {
 
     @Test
