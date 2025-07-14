@@ -2,11 +2,11 @@ package com.example.employeeservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.openfeign.EnableFeignClients;
 
 
-@SpringBootTest
-@EnableFeignClients
+
+
+@SpringBootTest(properties = "spring.cloud.config.enabled=false")
 class EmployeeApplicationTests {
 
     @Test
