@@ -1,4 +1,5 @@
 services:
+
   mysql:
     image: mysql:8.0
     container_name: mysql
@@ -13,8 +14,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
     volumes:
       - mysql_data:/var/lib/mysql
+    restart: on-failure
 
   mongodb:
     image: mongo:5.0
@@ -26,8 +29,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 30s
     volumes:
       - mongodb_data:/data/db
+    restart: on-failure
 
   zookeeper:
     image: zookeeper:3.8
@@ -35,14 +40,15 @@ services:
     ports:
       - "2181:2181"
     environment:
-      ZOO_STANDALONE_ENABLED: "true"  # Force le mode standalone
-      ZOO_4LW_COMMANDS_WHITELIST: "*"  # Autorise toutes les commandes 4 lettres
+      ZOO_STANDALONE_ENABLED: "true"
+      ZOO_4LW_COMMANDS_WHITELIST: "*"
     healthcheck:
-      test: [ "CMD", "zkServer.sh", "status" ]
+      test: ["CMD", "zkServer.sh", "status"]
       interval: 10s
       timeout: 20s
       retries: 5
       start_period: 30s
+    restart: on-failure
 
   kafka:
     image: bitnami/kafka:3.6
@@ -65,6 +71,8 @@ services:
       interval: 10s
       timeout: 10s
       retries: 10
+      start_period: 40s
+    restart: on-failure
 
   discovery-server:
     build: ./discovery-server
@@ -80,7 +88,7 @@ services:
       interval: 20s
       timeout: 10s
       retries: 15
-      start_period: 30s
+      start_period: 45s
     depends_on:
       mysql:
         condition: service_healthy
@@ -88,6 +96,7 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    restart: on-failure
 
   config-server:
     build: ./config-server
@@ -101,10 +110,11 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
-      start_period: 30s
+      start_period: 150s
     depends_on:
       discovery-server:
         condition: service_healthy
+    restart: on-failure
 
   employee-service:
     build: ./employee-service
@@ -115,12 +125,14 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: "10"
       SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: "3000"
+      SPRING_CLOUD_CONFIG_REQUEST_READ_TIMEOUT: "10000"
+      SPRING_CLOUD_CONFIG_REQUEST_CONNECT_TIMEOUT: "5000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
-      interval: 20s
-      timeout: 10s
+      interval: 30s
+      timeout: 20s
       retries: 10
-      start_period: 60s
+      start_period: 120s
     depends_on:
       config-server:
         condition: service_healthy
@@ -128,6 +140,7 @@ services:
         condition: service_healthy
       mongodb:
         condition: service_healthy
+    restart: on-failure
 
   societe-service:
     build: ./societe-service
@@ -139,12 +152,16 @@ services:
       SPRING_DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "30000"
       SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: "earliest"
       SPRING_KAFKA_CONSUMER_ENABLE_AUTO_COMMIT: "false"
+      SPRING_CLOUD_CONFIG_RETRY_MAX_ATTEMPTS: "10"
+      SPRING_CLOUD_CONFIG_RETRY_INITIAL_INTERVAL: "3000"
+      SPRING_CLOUD_CONFIG_REQUEST_READ_TIMEOUT: "10000"
+      SPRING_CLOUD_CONFIG_REQUEST_CONNECT_TIMEOUT: "5000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
-      interval: 20s
-      timeout: 10s
+      interval: 30s
+      timeout: 20s
       retries: 10
-      start_period: 90s
+      start_period: 150s
     depends_on:
       config-server:
         condition: service_healthy
@@ -154,6 +171,7 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+    restart: on-failure
 
   api-gateway:
     build: ./api-gateway
@@ -175,7 +193,10 @@ services:
         condition: service_healthy
       discovery-server:
         condition: service_healthy
+    restart: on-failure
 
 volumes:
   mysql_data:
   mongodb_data:
+
+# Supprimé networks: default car il est géré automatiquement
