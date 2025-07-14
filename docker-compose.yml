@@ -110,7 +110,7 @@ services:
       interval: 15s
       timeout: 10s
       retries: 10
-      start_period: 150s
+      start_period: 180s
     depends_on:
       discovery-server:
         condition: service_healthy
@@ -132,7 +132,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 10
-      start_period: 120s
+      start_period: 180s
     depends_on:
       config-server:
         condition: service_healthy
@@ -161,7 +161,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 10
-      start_period: 150s
+      start_period: 180s
     depends_on:
       config-server:
         condition: service_healthy
@@ -198,5 +198,3 @@ services:
 volumes:
   mysql_data:
   mongodb_data:
-
-# Supprimé networks: default car il est géré automatiquement
